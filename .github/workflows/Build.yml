@@ -49,12 +49,13 @@ jobs:
           echo "SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}"
           # Be careful, don't echo SONAR_TOKEN, as it's sensitive
           echo "Verifying SonarQube connection..."
-          curl -s ${{ secrets.SONAR_HOST_URL }}/api/server/version
+          curl -s ${{ secrets.SONAR_TOKEN }}}/api/server/version
 
       - name: Build and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         working-directory: user-management-main/user-management-main  # Directory where pom.xml is located
         run: |
           mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
