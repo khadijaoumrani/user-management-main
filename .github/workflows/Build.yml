@@ -1,60 +1,42 @@
-name: Build and Analyze
+name: Build
 
 on:
   push:
     branches:
       - main
 
+
 jobs:
   build:
-    name: Build and Analyze with SonarQube
-    runs-on: windows-latest  # Utiliser un environnement Windows
-
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    
     steps:
-      # Clone repository
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Cloner tout l'historique pour une meilleure analyse
-
-      # Set up JDK
-      - name: Set up JDK 21
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 21
-          distribution: 'zulu'
-
-      # Cache SonarQube packages
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available.
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-          path: C:\Users\runneradmin\.sonar\cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      # Cache Maven dependencies
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: C:\Users\runneradmin\.m2
+          path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-
-      # Verify pom.xml existence
-      - name: Verify pom.xml existence
-        run: |
-          cd user-management-main/user-management-main
-          if (Test-Path "pom.xml") {
-            Write-Output "pom.xml found."
-          } else {
-            Write-Error "pom.xml not found!"
-            exit 1
-          }
-
-      # Build and Analyze
-      - name: Build and Analyze
+      - name: Build and analyze
         env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # URL du serveur SonarQube déjà démarré
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
         run: |
           cd user-management-main/user-management-main
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
