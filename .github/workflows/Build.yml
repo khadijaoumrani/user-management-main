@@ -37,7 +37,7 @@ jobs:
 
       # Naviguer vers le sous-répertoire où se trouve le fichier pom.xml
       - name: Navigate to project directory
-        run: cd user-management-main/user-management-main  # Ajustez ce chemin si nécessaire
+        run: cd user-management-main/user-management-main/user-management-main  # Ajustez ce chemin si nécessaire
 
       - name: Build and analyze
         env:
