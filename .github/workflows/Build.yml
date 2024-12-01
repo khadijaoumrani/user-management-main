@@ -49,4 +49,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         working-directory: user-management-main/user-management-main  # Répertoire où se trouve pom.xml
+       run: mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
+
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
