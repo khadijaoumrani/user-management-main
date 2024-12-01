@@ -42,7 +42,8 @@ jobs:
       # Verify pom.xml existence
       - name: Verify pom.xml existence
         run: |
-          if (Test-Path "user-management-main\pom.xml") {
+          cd user-management-main/user-management-main
+          if (Test-Path "pom.xml") {
             Write-Output "pom.xml found."
           } else {
             Write-Error "pom.xml not found!"
@@ -65,8 +66,8 @@ jobs:
         env:
           SONAR_HOST_URL: http://localhost:9000
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: user-management-main
         run: |
+          cd user-management-main/user-management-main
           mvn clean verify sonar:sonar `
             -Dsonar.projectKey=user-management `
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} `
