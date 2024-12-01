@@ -8,13 +8,13 @@ on:
 jobs:
   build:
     name: Build and Analyze with SonarQube
-    runs-on: windows-latest  # Exécutez sur un environnement Windows
+    runs-on: windows-latest  # Utiliser un environnement Windows
 
     steps:
       # Clone repository
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0  # Cloner tout l'historique pour une meilleure analyse
 
       # Set up JDK
       - name: Set up JDK 21
@@ -50,25 +50,11 @@ jobs:
             exit 1
           }
 
-      # Start SonarQube in Docker
-      - name: Start SonarQube
-        run: |
-          docker run -d --name sonarqube -p 9000:9000 sonarqube:lts
-
-      # Wait for SonarQube to be ready
-      - name: Wait for SonarQube
-        run: |
-          Write-Output "Waiting for SonarQube to be ready..."
-          Start-Sleep -Seconds 30  # Wait for SonarQube
-
       # Build and Analyze
       - name: Build and Analyze
         env:
-          SONAR_HOST_URL: http://localhost:9000
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # URL du serveur SonarQube déjà démarré
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd user-management-main/user-management-main
-          mvn clean verify sonar:sonar `
-            -Dsonar.projectKey=user-management `
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} `
-            -Dsonar.host.url=http://localhost:9000
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
