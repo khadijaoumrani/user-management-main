@@ -44,11 +44,19 @@ jobs:
             exit 1
           fi
 
+      - name: Verify SONAR_HOST_URL and SONAR_TOKEN
+        run: |
+          echo "SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}"
+          # Be careful, don't echo SONAR_TOKEN, as it's sensitive
+          echo "Verifying SonarQube connection..."
+          curl -s ${{ secrets.SONAR_HOST_URL }}/api/server/version
+
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        working-directory: user-management-main/user-management-main  # Répertoire où se trouve pom.xml
-       run: mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
-
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
+        working-directory: user-management-main/user-management-main  # Directory where pom.xml is located
+        run: |
+          mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
+          # or use the plugin-based run:
+          # mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main' -X
