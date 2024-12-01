@@ -1,4 +1,4 @@
-name: Build
+name: Build and Analyze
 
 on:
   push:
@@ -7,46 +7,67 @@ on:
 
 jobs:
   build:
-    name: Build and analyze
-    runs-on: ubuntu-latest
+    name: Build and Analyze with SonarQube
+    runs-on: windows-latest  # Exécutez sur un environnement Windows
 
     steps:
+      # Clone repository
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      
+          fetch-depth: 0  # Full history for better analysis
+
+      # Set up JDK
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: 'zulu'
 
+      # Cache SonarQube packages
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
+          path: C:\Users\runneradmin\.sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      # Cache Maven dependencies
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: C:\Users\runneradmin\.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      # Verify pom.xml existence
       - name: Verify pom.xml existence
         run: |
-          if [ -f "user-management-main/user-management-main/pom.xml" ]; then
-            echo "pom.xml found."
-          else
-            echo "pom.xml not found!"
+          if (Test-Path "user-management-main\pom.xml") {
+            Write-Output "pom.xml found."
+          } else {
+            Write-Error "pom.xml not found!"
             exit 1
-          fi
+          }
 
-      - name: Build and analyze
+      # Start SonarQube in Docker
+      - name: Start SonarQube
+        run: |
+          docker run -d --name sonarqube -p 9000:9000 sonarqube:lts
+
+      # Wait for SonarQube to be ready
+      - name: Wait for SonarQube
+        run: |
+          Write-Output "Waiting for SonarQube to be ready..."
+          Start-Sleep -Seconds 30  # Wait for SonarQube
+
+      # Build and Analyze
+      - name: Build and Analyze
         env:
+          SONAR_HOST_URL: http://localhost:9000
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        working-directory: user-management-main/user-management-main
-        run: mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
+        working-directory: user-management-main
+        run: |
+          mvn clean verify sonar:sonar `
+            -Dsonar.projectKey=user-management `
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} `
+            -Dsonar.host.url=http://localhost:9000
