@@ -35,12 +35,18 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Naviguer vers le sous-répertoire où se trouve le fichier pom.xml
-      - name: Navigate to project directory
-        run: cd user-management-main/user-management-main/user-management-main  # Ajustez ce chemin si nécessaire
+      - name: Verify pom.xml existence
+        run: |
+          if [ -f "user-management-main/user-management-main/pom.xml" ]; then
+            echo "pom.xml found."
+          else
+            echo "pom.xml not found!"
+            exit 1
+          fi
 
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        working-directory: user-management-main/user-management-main  # Répertoire où se trouve pom.xml
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
