@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'zulu'  # Alternative distribution options are available.
+          distribution: 'zulu'
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -44,20 +44,9 @@ jobs:
             exit 1
           fi
 
-      - name: Verify SONAR_HOST_URL and SONAR_TOKEN
-        run: |
-          echo "SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}"
-          # Be careful, don't echo SONAR_TOKEN, as it's sensitive
-          echo "Verifying SonarQube connection..."
-          curl -s ${{ secrets.SONAR_TOKEN }}}/api/server/version
-
       - name: Build and analyze
         env:
-      
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        working-directory: user-management-main/user-management-main  # Directory where pom.xml is located
-        run: |
-          mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
-          # or use the plugin-based run:
-          # mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main' -X
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        working-directory: user-management-main/user-management-main
+        run: mvn clean verify sonar:sonar -Dsonar.projectKey=user-management -X
