@@ -1,42 +1,57 @@
-name: Build
+name: Build and Analyze
 
 on:
   push:
     branches:
-      - main
+      - main  # Le workflow sera déclenché sur les pushes vers la branche 'main'
 
+  pull_request:
+    branches:
+      - main  # Le workflow sera également déclenché sur les pull requests vers 'main'
 
 jobs:
   build:
-    name: Build and analyze
-    runs-on: self-hosted
+    name: Build and Analyze with SonarQube
+    runs-on: self-hosted  # Utilise un runner auto-hébergé. Changez par `ubuntu-latest` si besoin.
     
     steps:
-      - uses: actions/checkout@v4
+      # Étape 1 : Cloner le dépôt
+      - name: Checkout source code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Désactive les clones partiels pour un meilleur contexte d'analyse
+
+      # Étape 2 : Configurer Java JDK 21
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'zulu' # Alternative distribution options are available.
+          distribution: 'zulu'  # Changez si vous préférez une autre distribution (e.g., `temurin`)
+
+      # Étape 3 : Mettre en cache les dépendances SonarQube
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
+      # Étape 4 : Mettre en cache les dépendances Maven
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+      # Étape 5 : Construire et analyser avec SonarQube
+      - name: Build and analyze with SonarQube
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Ajouter SONAR_TOKEN dans les secrets GitHub
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Ajouter SONAR_HOST_URL dans les secrets GitHub
         run: |
+          # Changez le chemin si nécessaire
           cd user-management-main/user-management-main
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=user-management-main -Dsonar.projectName='user-management-main'
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=user-management-main \
+            -Dsonar.projectName='user-management-main'
