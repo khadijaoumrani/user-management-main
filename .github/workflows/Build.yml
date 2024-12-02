@@ -18,13 +18,16 @@ jobs:
           fetch-depth: 0  # Récupère tout l'historique pour l'analyse SonarQube
 
       # 2. Vérifiez et initialisez le dépôt Git si nécessaire
-      - name: Verify Git repository
+      - name: Verify and Initialize Git Repository
         run: |
           if [ ! -d ".git" ]; then
+            echo "Initializing Git repository..."
             git init
             git remote add origin https://github.com/khadijaoumrani/user-management-main.git
             git fetch origin main
             git checkout main
+          else
+            echo "Git repository already initialized."
           fi
 
       # 3. Configurez Java JDK 21
